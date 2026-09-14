@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView, QChec
 from PySide6.QtCore import Qt, Signal
 from datetime import datetime
 from pathlib import Path
+import os
 import subprocess
 import platform
 from utils.helpers import format_size
@@ -21,7 +22,6 @@ class FileListWidget(QTableWidget):
         self.setColumnCount(6)
         self.setHorizontalHeaderLabels(["Select", "Name", "Size", "Modified", "Category", "Path"])
 
-        # Налаштування колонок
         header = self.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Select
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)  # Name
@@ -30,7 +30,6 @@ class FileListWidget(QTableWidget):
         header.setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Category
         header.setSectionResizeMode(5, QHeaderView.Stretch)           # Path
 
-        # Стилі
         self.setStyleSheet("""
             QTableWidget {
                 border: 1px solid #ddd;
@@ -45,16 +44,15 @@ class FileListWidget(QTableWidget):
         """)
 
         self.setAlternatingRowColors(True)
-        self.setEditTriggers(QTableWidget.NoEditTriggers)   # Забороняємо редагування клітинок
-        self.setSelectionMode(QTableWidget.NoSelection)     # Забороняємо будь-яке виділення клітинок
-        self.setFocusPolicy(Qt.NoFocus)                     # Забороняємо фокус на клітинках під час кліку
+        self.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.setSelectionMode(QTableWidget.NoSelection)
+        self.setFocusPolicy(Qt.NoFocus)
 
-        # Підключаємо сигнали
         self.doubleClicked.connect(self.on_file_double_clicked)
 
 
     def populate_files(self, files: list):
-        """Заповнює таблицю файлами"""
+        """Fill table with files"""
 
         self.clear_selection()
 
@@ -62,42 +60,38 @@ class FileListWidget(QTableWidget):
         self.setRowCount(len(files))
 
         for row, file_info in enumerate(files):
-            # ========== КОЛОНА 0: CHECKBOX ==========
+            # ========== COLUMN 0: CHECKBOX ==========
             checkbox = QCheckBox()
             checkbox.setChecked(False)
-            checkbox.file_path = file_info["path"]      # Зберігаємо шлях до файлу у checkbox
-
+            checkbox.file_path = file_info["path"]
             checkbox.stateChanged.connect(self.on_checkbox_state_changed)
-
-            # Помістимо checkbox в центр клітинки
             checkbox_widget = QWidget()
             checkbox_layout = QHBoxLayout(checkbox_widget)
             checkbox_layout.setContentsMargins(0, 0, 0, 0)
             checkbox_layout.addWidget(checkbox, alignment=Qt.AlignCenter)
-
             self.setCellWidget(row, 0, checkbox_widget)
 
-            # ========== КОЛОНА 1: ІМ'Я ==========
+            # ========== COLUMN 1: FILE NAME ==========
             name_item = QTableWidgetItem(file_info["name"])
             name_item.setFlags(name_item.flags() | Qt.ItemIsSelectable)
             name_item.setData(Qt.UserRole, file_info["path"])
             self.setItem(row, 1, name_item)
 
-            # ========== КОЛОНА 2: РОЗМІР ==========
+            # ========== COLUMN 2: SIZE ==========
             size_item = QTableWidgetItem(format_size(file_info["size"]))
             size_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.setItem(row, 2, size_item)
 
-            # ========== КОЛОНА 3: ДАТА ==========
+            # ========== COLUMN 3: DATE ==========
             modified_time = datetime.fromtimestamp(file_info["modified_time"])
             date_item = QTableWidgetItem(modified_time.strftime("%d.%m.%Y %H:%M"))
             self.setItem(row, 3, date_item)
 
-            # ========== КОЛОНА 4: КАТЕГОРІЯ ==========
+            # ========== COLUMN 4: CATEGORY ==========
             category_item = QTableWidgetItem(file_info["category"])
             self.setItem(row, 4, category_item)
 
-            # ========== КОЛОНА 5: ШЛЯХ ==========
+            # ========== COLUMN 5: PATH ==========
             path_item = QTableWidgetItem(file_info["path"])
             path_item.setToolTip(file_info["path"])
             self.setItem(row, 5, path_item)
@@ -106,7 +100,7 @@ class FileListWidget(QTableWidget):
     def on_checkbox_state_changed(self):
         """Called when anу checkbox changes a state"""
         selected_count = len(self.get_selected_files())
-        self.selection_changed.emit(selected_count)         # Видаємо сигнал з кількістю обраних файлів
+        self.selection_changed.emit(selected_count)
 
 
     def on_file_double_clicked(self, index):
@@ -118,8 +112,7 @@ class FileListWidget(QTableWidget):
         if column == 0:
             return
 
-        # Отримуємо шлях до файлу
-        name_item = self.item(row, 1)  # Name в колоні 1
+        name_item = self.item(row, 1)
         if name_item:
             file_path = name_item.data(Qt.UserRole)
             if file_path:
@@ -137,7 +130,6 @@ class FileListWidget(QTableWidget):
             if system == "Darwin":
                 subprocess.Popen(["open", file_path])
             elif system == "Windows":
-                import os
                 os.startfile(file_path)
 
         except Exception as e:
@@ -165,8 +157,7 @@ class FileListWidget(QTableWidget):
             if checkbox_widget:
                 checkbox = checkbox_widget.findChild(QCheckBox)
                 if checkbox:
-                    # checkbox.setChecked(False)
-                    checkbox.blockSignals(True)  # Блокуємо сигнали
+                    checkbox.blockSignals(True)
                     checkbox.setChecked(False)
-                    checkbox.blockSignals(False)  # Розблоковуємо
+                    checkbox.blockSignals(False)
         self.selection_changed.emit(0)

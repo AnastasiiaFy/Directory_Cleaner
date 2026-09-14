@@ -16,7 +16,7 @@ class FileSystemService:
         self.image_analyzer = ImageAnalyzer(similarity_threshold=0.8)
         self.current_scan_result = None
 
-    # ==================== СКАНУВАННЯ ====================
+    # ==================== SCANNING ====================
     def scan_directory(self, start_path: str) -> dict:
         self.current_scan_result = self.scanner.scan(start_path)
         return self.current_scan_result
@@ -27,7 +27,7 @@ class FileSystemService:
     def get_current_scan_result(self) -> dict:
         return self.current_scan_result
 
-    # ==================== ФІЛЬТРАЦІЯ І СОРТУВАННЯ ====================
+    # ==================== FILTERING AND SORTING ====================
     def apply_sort(self, files: list[dict], sort_by: str):
         return self.filter.sort_files(files, sort_by)
 
@@ -45,7 +45,7 @@ class FileSystemService:
         """
         return self.filter.filter_by_time(files, days, older)
 
-    # ==================== ВИДАЛЕННЯ ФАЙЛІВ ====================
+    # ==================== FILE DELETION ====================
     def delete_selected_files(self, file_paths: list[str]) -> dict:
         """Delete selected files
 
@@ -57,11 +57,10 @@ class FileSystemService:
         """
         result = self.manager.delete_files(file_paths)
 
-        # Зберігаємо в історію якщо успішно видалилось
+        # Save history
         if result["deleted"]:
             self.history.add_deletion(result["deleted"], result["total_freed_bytes"])
 
-        # Оновлюємо поточний результат сканування
         if self.current_scan_result:
             self.current_scan_result = self.manager.update_scan_results(
                 self.current_scan_result,
@@ -70,7 +69,7 @@ class FileSystemService:
 
         return result
 
-    # ==================== ПОШУК ДУБЛІКАТІВ ЗОБРАЖЕНЬ ====================
+    # ==================== DUPLICATES SEARCHING ====================
     def find_similar_images(self, files: list) -> dict:
         """Find simlar images or duplicates
 

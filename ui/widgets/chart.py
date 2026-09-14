@@ -35,25 +35,20 @@ class CategoryChart(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
-        # Параметри
         padding = 10
         bar_height = 20
         spacing = 8
 
-        # Малюємо кожну категорію
         y_pos = padding
         for category_name, category_data in self.categories.items():
             size = category_data["size"]
             percentage = (size / self.total_size * 100) if self.total_size > 0 else 0
 
-            # Довжина бара (відносно ширини вікна)
             bar_width = (self.width() - 2 * padding - 100) * (percentage / 100)
 
-            # Чарт
             color = CATEGORY_COLORS.get(category_name, QColor(128, 128, 128))
             painter.fillRect(padding, y_pos, bar_width, bar_height, color)
 
-            # Текст (категорія, розмір)
             label_text = f"{category_name.capitalize()}"
             size_text = f"{format_size(size)} ({percentage:.1f}%)"
 

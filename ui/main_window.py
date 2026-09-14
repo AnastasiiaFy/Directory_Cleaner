@@ -26,7 +26,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Directory Cleaner")
         self.setGeometry(100, 100, 1400, 800)
 
-        # Дані та елементи
         self.current_path = Path(initial_path)
         self.scan_results = None
         self.worker = None
@@ -57,13 +56,12 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        # Основний layout (горизонтальний)
         main_layout = QHBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
         # ======================================================================
-        #        ЛІВА ЧАСТИНА: SIDEBAR + TOGGLE КНОПКА
+        #                   SIDEBAR + TOGGLE BUTTON
         # ======================================================================
         sidebar_container = QHBoxLayout()
         sidebar_container.setContentsMargins(0, 0, 0, 0)
@@ -74,7 +72,7 @@ class MainWindow(QMainWindow):
         self.sidebar.select_another_directory.connect(self.select_another_directory)
         sidebar_container.addWidget(self.sidebar)
 
-        # Toggle кнопка
+        # Toggle button
         self.toggle_btn = QPushButton()
         self.toggle_btn.setFixedSize(40, 50)
         self.toggle_btn.setIcon(QIcon("resources/chevron-left.png"))
@@ -101,13 +99,12 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(sidebar_container)
 
         # ======================================================================
-        #            ПРАВА ЧАСТИНА: ОСНОВНА ОБЛАСТЬ
+        #                  MAIN AREA
         # ======================================================================
         right_layout = QVBoxLayout()
         right_layout.setContentsMargins(20, 20, 20, 20)
         right_layout.setSpacing(16)
 
-        # Статус сканування
         self.status_label = QLabel("Scanning...")
         self.status_label.setStyleSheet("""
             QLabel {
@@ -118,12 +115,12 @@ class MainWindow(QMainWindow):
         """)
         right_layout.addWidget(self.status_label)
 
-        # ========== TOOLBAR З КНОПКАМИ ==========
+        # ========== TOOLBAR  ==========
         toolbar_layout = QHBoxLayout()
         toolbar_layout.setContentsMargins(0, 0, 0, 0)
         toolbar_layout.setSpacing(0)
 
-        # Кнопка видалення + лічильник обраних файлів
+        # Delete button + selection counter
         self.btn_select = self._create_toolbar_button("resources/delete.png", "Delete Selected Files")
         self.selection_badge = SelectionBadge()
         self.selection_badge.hide()
@@ -140,7 +137,7 @@ class MainWindow(QMainWindow):
         toolbar_layout.addWidget(select_group_container)
         toolbar_layout.addSpacing(12)
 
-        # Інші 3 кнопки
+        # Other 4 buttons
         self.btn_recommendations = self._create_toolbar_button("resources/image_helper.png", "Find image duplicates")
         self.btn_sort = self._create_toolbar_button("resources/sort.png", "Sort")
         self.btn_filter = self._create_toolbar_button("resources/filter_by_time.png", "Filter by Modification Time")
@@ -151,15 +148,12 @@ class MainWindow(QMainWindow):
         toolbar_layout.addSpacing(12)
         toolbar_layout.addWidget(self.btn_filter)
 
-        # Спейсер для розділення кнопок
         spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         toolbar_layout.addItem(spacer)
 
-        # 1 кнопка праворуч
         self.btn_rescan = self._create_toolbar_button("resources/refresh.png", "Rescan folder")
         toolbar_layout.addWidget(self.btn_rescan)
 
-        # Підключення сигналів до кнопок
         self.btn_select.clicked.connect(self.on_select_clicked)
         self.btn_recommendations.clicked.connect(self.on_recommendations_clicked)
         self.btn_sort.clicked.connect(self.on_sort_clicked)
@@ -169,7 +163,7 @@ class MainWindow(QMainWindow):
         right_layout.addLayout(toolbar_layout)
 
         # ======================================================================
-        #            ТАБЛИЦЯ ФАЙЛІВ
+        #            FILE TABLE
         # ======================================================================
         self.file_list = FileListWidget()
         self.file_list.selection_changed.connect(self.on_selection_changed)
@@ -182,7 +176,6 @@ class MainWindow(QMainWindow):
     def start_scan(self):
         """ Start scanning directory in separate thread """
         self.status_label.setText("Scanning...")
-
         self.worker = ScannerWorker(self.service, str(self.current_path))
         self.worker.finished.connect(self.on_scan_finished)
         self.worker.error.connect(self.on_scan_error)
@@ -190,15 +183,12 @@ class MainWindow(QMainWindow):
 
     def on_scan_finished(self, results):
         """Called when the scan is complete """
-
         self.status_label.setText("")
         self.scan_results = results
 
-        # Оновлюємо sidebar
         self.sidebar.set_path(str(self.current_path))
         self.sidebar.update_statistics(results["statistics"])
 
-        # Показуємо файли
         self.file_list.populate_files(results["all_files"])
 
 
@@ -255,7 +245,7 @@ class MainWindow(QMainWindow):
         return btn
 
     # ======================================================================
-    #                        ОБРОБНИКИ КНОПОК
+    #                        BUTTON HANDLERS
     # ======================================================================
     def on_select_clicked(self):
         """Button 'Select for Deletion' handler """
@@ -269,7 +259,6 @@ class MainWindow(QMainWindow):
             msg_box.exec()
             return
 
-        # Отримуємо інформацію про обрані файли
         file_infos = [
             f for f in self.scan_results["all_files"]
             if f["path"] in selected_files
@@ -278,19 +267,15 @@ class MainWindow(QMainWindow):
         total_size = sum(f["size"] for f in file_infos)
         file_count = len(file_infos)
 
-        print(total_size, file_count)
 
-        # Показуємо діалог підтвердження
         dialog = DeleteConfirmationDialog(file_count, total_size, parent=self)
 
-        # if dialog.is_confirmed():
         if dialog.exec() == QDialog.Accepted:
             self.delete_selected_files(file_infos)
 
 
     def on_recommendations_clicked(self):
         """Button 'Get Recommendations' handler"""
-
         image_files = [
             f for f in self.scan_results["all_files"]
             if f["category"] == "Images"
@@ -304,19 +289,14 @@ class MainWindow(QMainWindow):
             msg_box.exec()
             return
 
-        # Запускаємо аналіз в окремому потоці
         self.status_label.setText("Analyzing images for duplicates...")
-
         self.analysis_worker = ImageAnalysisWorker(self.service, self.scan_results["all_files"])
         self.analysis_worker.finished.connect(self.on_analysis_finished)
         self.analysis_worker.error.connect(self.on_analysis_error)
         self.analysis_worker.start()
 
     def on_analysis_finished(self, duplicates: dict):
-        """Завершення аналізу - показуємо результати"""
         if not duplicates:
-            self.status_label.setText("No similar images found")
-
             msg_box = QMessageBox(self)
             msg_box.setWindowTitle("Zero duplicates")
             msg_box.setText("No similar images found")
@@ -324,24 +304,19 @@ class MainWindow(QMainWindow):
             msg_box.exec()
             return
 
-
         self.status_label.setText("")
-        # Збираємо всі файли, які мають дублікати
-        duplicate_paths = set(duplicates.keys())  # Основні зображення
+
+        duplicate_paths = set(duplicates.keys())
         for similar_list in duplicates.values():
             for similar in similar_list:
-                duplicate_paths.add(similar["path"])  # Дублікати
+                duplicate_paths.add(similar["path"])
 
-        # Фільтруємо список файлів - показуємо тільки дублікати
         duplicate_files = [
             f for f in self.scan_results["all_files"]
             if f["path"] in duplicate_paths
         ]
 
-        # Показуємо в таблиці
         self.file_list.populate_files(duplicate_files)
-
-        # Виділяємо групи дублікатів різними кольорами
         self._highlight_duplicate_groups(duplicates)
 
     def on_analysis_error(self):
@@ -353,8 +328,6 @@ class MainWindow(QMainWindow):
         Args:
             duplicates: Dict with duplicates
         """
-        from PySide6.QtGui import QColor, QBrush
-
         group_colors = [
             QColor(255, 200, 100, 100),
             QColor(255, 181, 194, 100),
@@ -368,19 +341,16 @@ class MainWindow(QMainWindow):
             QColor(255, 200, 200, 100),
         ]
 
-        # Для кожної групи встановлюємо колір
         for group_idx, (main_path, similar_list) in enumerate(duplicates.items()):
             color_idx = group_idx % len(group_colors)
             group_color = group_colors[color_idx]
 
-            # Шляхи всіх файлів у цій групі
             group_paths = {main_path}
             for similar in similar_list:
                 group_paths.add(similar["path"])
 
-            # Виділяємо весь рядок для кожного файлу в групі
             for row in range(self.file_list.rowCount()):
-                path_item = self.file_list.item(row, 5)  # Колона Path
+                path_item = self.file_list.item(row, 5)
 
                 if path_item and path_item.text() in group_paths:
                     for col in range(self.file_list.columnCount()):
@@ -388,12 +358,10 @@ class MainWindow(QMainWindow):
                         if item:
                             item.setBackground(QBrush(group_color))
 
-                        # Додаємо tooltip з інформацією про подібність
                         if col == 1:
                             if path_item.text() == main_path:
                                 item.setToolTip("Main image (has duplicates)")
                             else:
-                                # Знаходимо подібність для цього файлу
                                 for similar in similar_list:
                                     if similar["path"] == path_item.text():
                                         similarity = similar["similarity_percent"]
@@ -418,19 +386,16 @@ class MainWindow(QMainWindow):
             }
         """)
 
-        # Дії для сортування
         action_by_name = menu.addAction("Sort by Name")
         action_by_size = menu.addAction("Sort by Size")
         action_by_date = menu.addAction("Sort by Modification Time")
         action_by_extension = menu.addAction("Sort by Extension")
 
-        # Підключаємо дії
         action_by_name.triggered.connect(lambda: self._apply_sort("name"))
         action_by_size.triggered.connect(lambda: self._apply_sort("size"))
         action_by_date.triggered.connect(lambda: self._apply_sort("modified_time"))
         action_by_extension.triggered.connect(lambda: self._apply_sort("extension"))
 
-        # Показуємо меню під кнопкою
         menu.exec(self.btn_sort.mapToGlobal(self.btn_sort.rect().bottomLeft()))
 
     def on_filter_clicked(self):
@@ -449,7 +414,6 @@ class MainWindow(QMainWindow):
             }
         """)
 
-        # Параметри для фільтрації
         action_24h = menu.addAction("Last 24 Hours")
         action_3d = menu.addAction("Last 3 Days")
         action_1w = menu.addAction("Last Week")
@@ -458,7 +422,6 @@ class MainWindow(QMainWindow):
         action_1y = menu.addAction("Last Year")
         action_older = menu.addAction("Older than 1 Year")
 
-        # Підключення дій
         action_24h.triggered.connect(lambda: self._apply_filter(1))
         action_3d.triggered.connect(lambda: self._apply_filter(3))
         action_1w.triggered.connect(lambda: self._apply_filter(7))
@@ -467,16 +430,14 @@ class MainWindow(QMainWindow):
         action_1y.triggered.connect(lambda: self._apply_filter(365))
         action_older.triggered.connect(lambda: self._apply_filter(365, older=True))
 
-        # Показ меню
         menu.exec(self.btn_filter.mapToGlobal(self.btn_filter.rect().bottomLeft()))
-
 
     def on_rescan_clicked(self):
         """Button 'Rescan' handler"""
         self.start_scan()
 
     # ======================================================================
-    #                   ДОПОМІЖНІ ФУНКЦІЇ ДЛЯ ОБРОБНИКІВ КНОПОК
+    #                   AUXILIARY FUNCTIONS FOR BUTTON HANDLERS
     # ======================================================================
     def delete_selected_files(self, files_to_delete: list):
         """Deletes selected files and save history
@@ -498,7 +459,6 @@ class MainWindow(QMainWindow):
             self.selection_badge.hide()
 
         else:
-            # Частково успішне видалення
             deleted_count = len(result["deleted"])
             failed_count = len(result["failed"])
             freed_size = format_size(result["total_freed_bytes"])

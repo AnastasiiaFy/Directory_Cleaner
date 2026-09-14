@@ -24,7 +24,7 @@ class DeleteConfirmationDialog(QDialog):
         layout.setContentsMargins(32, 28, 32, 28)
         layout.setSpacing(0)
 
-        # Іконка
+        # Icon
         trash_icon_label = QLabel()
         trash_pixmap = QPixmap("resources/delete.png").scaled(
             50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation
@@ -34,7 +34,7 @@ class DeleteConfirmationDialog(QDialog):
         layout.addWidget(trash_icon_label)
         layout.addSpacing(12)
 
-        # Заголовок
+        # Title
         title = QLabel("Delete Files")
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet("font-size: 18px; "
@@ -43,7 +43,7 @@ class DeleteConfirmationDialog(QDialog):
         layout.addWidget(title)
         layout.addSpacing(28)
 
-        # Інформація про файли та пам'ять
+        # Information about files number and total size
         info_layout = QVBoxLayout()
         info_layout.setSpacing(6)
         lbl_selected = QLabel(f"You selected {file_count} file(s) to delete.")
@@ -58,7 +58,7 @@ class DeleteConfirmationDialog(QDialog):
         layout.addLayout(info_layout)
         layout.addSpacing(16)
 
-        # Попередження
+        # Warning
         warning_layout = QHBoxLayout()
         warning_layout.setContentsMargins(0, 0, 0, 0)
         warning_layout.setSpacing(10)
@@ -79,11 +79,11 @@ class DeleteConfirmationDialog(QDialog):
         layout.addLayout(warning_layout)
         layout.addSpacing(32)
 
-        # Кнопки (Cancel / Delete)
+        # Buttons (Cancel / Delete)
         buttons_layout = QHBoxLayout()
         buttons_layout.setSpacing(16)
 
-        # Кнопка Cancel
+        # Cancel
         cancel_btn = QPushButton("Cancel")
         cancel_btn.setFixedHeight(44)
         cancel_btn.setStyleSheet("""
@@ -104,7 +104,7 @@ class DeleteConfirmationDialog(QDialog):
                 """)
         cancel_btn.clicked.connect(self.reject)
 
-        # Кнопка Delete
+        # Delete
         delete_btn = QPushButton("Delete")
         delete_btn.setFixedHeight(44)
         delete_btn.setStyleSheet("""

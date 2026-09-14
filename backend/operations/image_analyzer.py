@@ -20,7 +20,7 @@ class ImageAnalyzer:
         self.device = self._define_device()
         self.model = self._load_model()
         self.transform = self._get_transforms()
-        self.image_embeddings = {}                  # Cache для embeddings
+        self.image_embeddings = {}                  # Cache for embeddings
 
 
     @staticmethod
@@ -38,7 +38,7 @@ class ImageAnalyzer:
         """Load ResNet18 model and transforms for preprocessing"""
         weights = models.ResNet18_Weights.DEFAULT
         model = models.resnet18(weights=weights)
-        model = torch.nn.Sequential(*list(model.children())[:-1])           # Видаляємо classification layer
+        model = torch.nn.Sequential(*list(model.children())[:-1])           # Delete classification layer
         model = model.to(self.device)
         model.eval()
 
@@ -114,7 +114,6 @@ class ImageAnalyzer:
 
         print(f"Analyzing {len(image_files)} images for duplicates...")
 
-        # Отримуємо embeddings для всіх зображень
         embeddings_dict = {}
         for file_info in image_files:
             embedding = self._get_embedding(file_info["path"])
@@ -130,7 +129,6 @@ class ImageAnalyzer:
 
         similarity_matrix = cosine_similarity(embeddings)
 
-        # Знаходимо дублікати
         duplicates = {}
         for i, path1 in enumerate(paths):
             similar_images = []
@@ -148,7 +146,7 @@ class ImageAnalyzer:
                         "similarity_percent": round(similarity * 100, 1)
                     })
 
-            # Зберігаємо тільки якщо знайшли дублікати
+            # Save only if has duplicates
             if similar_images:
                 similar_images.sort(key=lambda x: x["similarity"], reverse=True)
                 duplicates[path1] = similar_images

@@ -2,8 +2,6 @@ import platform
 import os
 from pathlib import Path
 
-
-# ============ УНІВЕРСАЛЬНІ КОНСТАНТИ КАТЕГОРІЇ ФАЙЛІВ ============
 FILE_CATEGORIES = {
     "Images":           [".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg", ".ico", ".tiff", ".heic", ".heif", ".png"],
     "Documents":        [".pdf", ".doc", ".docx", ".txt", ".md", ".pages", ".odt", ".rtf", ".epub"],
@@ -16,7 +14,6 @@ FILE_CATEGORIES = {
     "Other":            []
 }
 
-# ============ КОЛЬОРИ КАТЕГОРІЙ ============
 CATEGORY_COLORS = {
     "Spreadsheets":  "#91C499",
     "Audio": "#AEECEF",
@@ -40,7 +37,6 @@ def get_platform() -> str:
         return "unknown"
 
 
-# ============ MACOS ============
 MACOS_EXCLUDED_DIRS = {
     "/System",
     "/Library",
@@ -52,7 +48,6 @@ MACOS_EXCLUDED_DIRS = {
     "/opt/homebrew",
 }
 
-# ============ WINDOWS ============
 WINDOWS_EXCLUDED_DIRS = {
     "C:\\Windows",
     "C:\\Program Files",

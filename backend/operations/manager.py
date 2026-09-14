@@ -21,7 +21,6 @@ class FileManager:
             if f["path"] not in deleted_paths
         ]
 
-        # Перераховуємо статистику
         scanner = FileScanner.Scanner("")
         scanner.all_files = scan_result["all_files"]
         scan_result["statistics"] = scanner.calculate_statistics()

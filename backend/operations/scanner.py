@@ -71,7 +71,7 @@ class FileScanner:
         def _process_file(self, file_path: Path) -> None:
             """Processes one file"""
             try:
-                file_stat = file_path.stat()         # Метадані файлу
+                file_stat = file_path.stat()         # File metadata
                 size = file_stat.st_size
                 modified_time = file_stat.st_mtime   # Unix timestamp
 

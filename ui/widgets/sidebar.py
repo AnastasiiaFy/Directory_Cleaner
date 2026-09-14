@@ -30,7 +30,7 @@ class SegmentedCategoryBar(QWidget):
         Args:
             categories_data: list of dict with color key та size value
         """
-        # Очищення попередніх віджетів
+        # Clear previous widgets
         while self.layout.count():
             item = self.layout.takeAt(0)
             if item.widget():
@@ -39,10 +39,8 @@ class SegmentedCategoryBar(QWidget):
         if not categories_data:
             return
 
-        # Розраховуємо загальний розмір
         total = sum(cat.get("size", 0) for cat in categories_data) or 1
 
-        # Розраховуємо "ідеальні" висоти
         ideal_heights = []
         for cat in categories_data:
             if cat.get("size", 0) > 0:
@@ -51,15 +49,16 @@ class SegmentedCategoryBar(QWidget):
             else:
                 ideal_heights.append(0)
 
-        # Штучно збільшуємо малі категорії, щоб зробити їх видимими
+
+        # artificially make  categories with small size bigger
         adjusted_heights = []
         for height in ideal_heights:
-            if 0 < height < 0.05:            # Якщо < 5%
+            if 0 < height < 0.05:            # if < 5%
                 adjusted_heights.append(height * 1.5)
             else:
                 adjusted_heights.append(height)
 
-        # Нормалізуємо (щоб сума = 1.0)
+        # Normalization
         total_adjusted = sum(adjusted_heights)
         if total_adjusted > 0:
             adjusted_heights = [h / total_adjusted for h in adjusted_heights]
@@ -105,7 +104,6 @@ class Sidebar(QWidget):
         layout.setContentsMargins(24, 28, 24, 24)
         layout.setSpacing(20)
 
-        # Заголовок і шлях
         header_layout = QVBoxLayout()
         header_layout.setSpacing(4)
 
@@ -120,11 +118,10 @@ class Sidebar(QWidget):
         header_layout.addWidget(self.path_label)
         layout.addLayout(header_layout)
 
-        # Загальна статистика (Quantity + Size)
+        # General statistics (Quantity + Size)
         stats_layout = QHBoxLayout()
         stats_layout.setSpacing(10)
 
-        # Кількість файлів
         self.file_count_label = QLabel("Files: 0")
         self.file_count_label.setStyleSheet("""
                     font-size: 14px;
@@ -132,7 +129,6 @@ class Sidebar(QWidget):
                     font-weight: 500;
                 """)
 
-        # Загальний розмір
         self.total_size_label = QLabel("Total: 0 B")
         self.total_size_label.setStyleSheet("""
                     font-size: 14px;
@@ -144,18 +140,16 @@ class Sidebar(QWidget):
         stats_layout.addWidget(self.total_size_label)
         layout.addLayout(stats_layout)
 
-        # 3. Блок із діаграмою та легендою (категоріями)
+        # Chart
         chart_container = QHBoxLayout()
         chart_container.setSpacing(16)
 
-        # Вертикальний бар категорій
         self.category_bar = SegmentedCategoryBar()
         self.category_bar.setFixedWidth(24)
         self.category_bar.setMinimumHeight(200)
         chart_container.addSpacing(5)
         chart_container.addWidget(self.category_bar)
 
-        # Контейнер під тексти категорій
         self.categories_layout = QVBoxLayout()
         self.categories_layout.setSpacing(12)
         self.categories_layout.setAlignment(Qt.AlignTop)
@@ -165,7 +159,7 @@ class Sidebar(QWidget):
 
         layout.addLayout(chart_container, stretch=1)
 
-        # 4. Кнопка "Обрати інший каталог"
+        # Button
         self.select_another_btn = QPushButton("Select Another Folder")
         self.select_another_btn.setFixedHeight(45)
         self.select_another_btn.setStyleSheet("""
@@ -200,7 +194,6 @@ class Sidebar(QWidget):
         Args:
             statistics: dict with categories statistics
         """
-        # Оновлюємо загальну статистику
         total_count = statistics.get("total_count", 0)
         total_size = statistics.get("total_size", 0)
 
@@ -210,7 +203,6 @@ class Sidebar(QWidget):
         progress_data = []
         categories_list = []
 
-        # Обробляємо категорії
         for category, data in statistics.get("by_category", {}).items():
             if data["count"] > 0:
                 progress_data.append({
@@ -231,7 +223,7 @@ class Sidebar(QWidget):
     def _update_categories_list(self, categories: list):
         """Updates the list of categories on the side of the chart"""
 
-        # Очищаємо попередній список
+        # Clean list
         while self.categories_layout.count():
             item = self.categories_layout.takeAt(0)
 
@@ -240,12 +232,11 @@ class Sidebar(QWidget):
             elif item.layout():
                 self._clear_layout(item.layout())
 
-        # Додаємо категорії
         for cat in categories:
             row_layout = QHBoxLayout()
             row_layout.setSpacing(8)
 
-            # Кольоровий круг
+            # Circle
             color_dot = QLabel()
             color_dot.setFixedSize(10, 10)
             color_dot.setStyleSheet(f"""
@@ -253,7 +244,7 @@ class Sidebar(QWidget):
                 border-radius: 5px;
             """)
 
-            # Назва категорії
+            # Category name
             name_lbl = QLabel(cat["name"])
             name_lbl.setStyleSheet("""
                 font-weight: bold;
@@ -265,7 +256,7 @@ class Sidebar(QWidget):
             row_layout.addWidget(name_lbl)
             row_layout.addStretch()
 
-            # Розмір файлів
+            # Files size
             size_lbl = QLabel(format_size(cat["size_bytes"]))
             size_lbl.setStyleSheet("""
                 font-size: 12px;
