@@ -5,13 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8388b6d5-7967-485e-9778-ebd5281edff6" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/Directory_Cleaner.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/operations/image_analyzer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/core/workers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/deletion_history.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/resources/Image_group.png" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/resources/image_helper.png" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/resources/smile.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/service.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/worker.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/workers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/worker.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/main_window.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/widgets/chart.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/widgets/chart.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ui/widgets/sidebar.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/widgets/sidebar.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/file_constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/file_constants.py" afterDir="false" />
     </list>
