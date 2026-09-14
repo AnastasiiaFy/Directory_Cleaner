@@ -10,13 +10,12 @@ def get_initial_directory():
     if app is None:
         app = QApplication(sys.argv)
 
-    # folder = QFileDialog.getExistingDirectory(
-    #     None,
-    #     "Select a directory to analyze",
-    #     str(Path.home()),
-    #     QFileDialog.ShowDirsOnly
-    # )
-    folder = '/Users/anastasiiafylypiv/Documents/TEST'
+    folder = QFileDialog.getExistingDirectory(
+        None,
+        "Select a directory to analyze",
+        str(Path.home()),
+        QFileDialog.ShowDirsOnly
+    )
 
     return folder
 

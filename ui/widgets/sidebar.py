@@ -36,19 +36,42 @@ class SegmentedCategoryBar(QWidget):
             if item.widget():
                 item.widget().deleteLater()
 
+        if not categories_data:
+            return
+
         # Розраховуємо загальний розмір
         total = sum(cat.get("size", 0) for cat in categories_data) or 1
 
-        # Додаємо сегменти
+        # Розраховуємо "ідеальні" висоти
+        ideal_heights = []
         for cat in categories_data:
             if cat.get("size", 0) > 0:
                 ratio = cat.get("size", 0) / total
-                frame = QFrame()
+                ideal_heights.append(ratio)
+            else:
+                ideal_heights.append(0)
+
+        # Штучно збільшуємо малі категорії, щоб зробити їх видимими
+        adjusted_heights = []
+        for height in ideal_heights:
+            if 0 < height < 0.05:            # Якщо < 5%
+                adjusted_heights.append(height * 1.5)
+            else:
+                adjusted_heights.append(height)
+
+        # Нормалізуємо (щоб сума = 1.0)
+        total_adjusted = sum(adjusted_heights)
+        if total_adjusted > 0:
+            adjusted_heights = [h / total_adjusted for h in adjusted_heights]
+
+        for i, cat in enumerate(categories_data):
+            if cat.get("size", 0) > 0:
+                frame = QWidget()
                 frame.setStyleSheet(
                     f"background-color: {cat.get('color', '#ccc')}; "
                     f"border-radius: 4px;"
                 )
-                self.layout.addWidget(frame, int(ratio * 1000))
+                self.layout.addWidget(frame, int(adjusted_heights[i] * 1000))
 
 
 class Sidebar(QWidget):
@@ -64,6 +87,7 @@ class Sidebar(QWidget):
         self.total_size_label = None
         self.category_bar = None
         self.select_another_btn = None
+        self.categories_layout = None
 
         self.setMinimumWidth(300)
         self.setMaximumWidth(340)
@@ -166,17 +190,15 @@ class Sidebar(QWidget):
         self.setLayout(layout)
 
     def set_path(self, path: str):
-        """Оновлює відображений шлях"""
+        """Updates the displayed path label"""
         self.path_label.setText(path)
 
     def update_statistics(self, statistics: dict):
         """
-        Оновлює діаграму та список категорій на основі статистики зі scanner.py
+        Updates bar chart and category list
 
         Args:
-            statistics: dict з ключами:
-                - by_category: dict з категоріями
-                - other: dict з іншими файлами
+            statistics: dict with categories statistics
         """
         # Оновлюємо загальну статистику
         total_count = statistics.get("total_count", 0)

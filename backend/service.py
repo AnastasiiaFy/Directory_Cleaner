@@ -2,6 +2,7 @@ from backend.operations.scanner import FileScanner
 from backend.operations.filter import FileFilter
 from backend.operations.manager import FileManager
 from backend.operations.history import DeletionHistory
+from backend.operations.image_analyzer import ImageAnalyzer
 
 
 class FileSystemService:
@@ -12,6 +13,7 @@ class FileSystemService:
         self.filter = FileFilter()
         self.manager = FileManager()
         self.history = DeletionHistory(history_file)
+        self.image_analyzer = ImageAnalyzer(similarity_threshold=0.8)
         self.current_scan_result = None
 
     # ==================== СКАНУВАННЯ ====================
@@ -21,6 +23,9 @@ class FileSystemService:
 
     def rescan_directory(self, start_path: str) -> dict:
         return self.scan_directory(start_path)
+
+    def get_current_scan_result(self) -> dict:
+        return self.current_scan_result
 
     # ==================== ФІЛЬТРАЦІЯ І СОРТУВАННЯ ====================
     def apply_sort(self, files: list[dict], sort_by: str):
@@ -65,5 +70,19 @@ class FileSystemService:
 
         return result
 
-    def get_current_scan_result(self) -> dict:
-        return self.current_scan_result
+    # ==================== ПОШУК ДУБЛІКАТІВ ЗОБРАЖЕНЬ ====================
+    def find_similar_images(self, files: list) -> dict:
+        """Find simlar images or duplicates
+
+        Args:
+            files: list of files
+
+        Returns:
+            Dict with groups of similar images
+        """
+        return self.image_analyzer.find_duplicates(files)
+
+
+    def clear_image_cache(self):
+        """Clean embeddings cache"""
+        self.image_analyzer.clear_cache()

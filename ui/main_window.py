@@ -6,14 +6,14 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QIcon, QPixmap, QColor, QBrush
 
 from ui.widgets.sidebar import Sidebar
 from ui.widgets.selection_badge import SelectionBadge
 from ui.widgets.file_list import FileListWidget
 from ui.dialogs.delete_confirmation_dialog import DeleteConfirmationDialog
 
-from core.worker import ScannerWorker
+from core.workers import ScannerWorker, ImageAnalysisWorker
 from backend.service import FileSystemService
 from utils.helpers import format_size
 
@@ -30,6 +30,7 @@ class MainWindow(QMainWindow):
         self.current_path = Path(initial_path)
         self.scan_results = None
         self.worker = None
+        self.analysis_worker = None
 
         self.sidebar = None
         self.sidebar_visible = True
@@ -140,7 +141,7 @@ class MainWindow(QMainWindow):
         toolbar_layout.addSpacing(12)
 
         # Інші 3 кнопки
-        self.btn_recommendations = self._create_toolbar_button("resources/recommend_for_deletion.png", "Not Available")
+        self.btn_recommendations = self._create_toolbar_button("resources/image_helper.png", "Find image duplicates")
         self.btn_sort = self._create_toolbar_button("resources/sort.png", "Sort")
         self.btn_filter = self._create_toolbar_button("resources/filter_by_time.png", "Filter by Modification Time")
 
@@ -261,7 +262,6 @@ class MainWindow(QMainWindow):
         selected_files = self.file_list.get_selected_files()
 
         if not selected_files:
-            # self.status_label.setText("No files selected for deletion")
             msg_box = QMessageBox(self)
             msg_box.setWindowTitle("No Selection")
             msg_box.setText("Please select files you want to delete.")
@@ -290,8 +290,118 @@ class MainWindow(QMainWindow):
 
     def on_recommendations_clicked(self):
         """Button 'Get Recommendations' handler"""
-        print("Recommendations clicked")
-        # TODO: Реалізувати логіку рекомендацій
+
+        image_files = [
+            f for f in self.scan_results["all_files"]
+            if f["category"] == "Images"
+        ]
+
+        if len(image_files) < 2:
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Not Enough Images")
+            msg_box.setText("Need at least 2 images to analyze for duplicates.")
+            msg_box.setIconPixmap(QPixmap("resources/Image_group.png").scaled(800, 400))
+            msg_box.exec()
+            return
+
+        # Запускаємо аналіз в окремому потоці
+        self.status_label.setText("Analyzing images for duplicates...")
+
+        self.analysis_worker = ImageAnalysisWorker(self.service, self.scan_results["all_files"])
+        self.analysis_worker.finished.connect(self.on_analysis_finished)
+        self.analysis_worker.error.connect(self.on_analysis_error)
+        self.analysis_worker.start()
+
+    def on_analysis_finished(self, duplicates: dict):
+        """Завершення аналізу - показуємо результати"""
+        if not duplicates:
+            self.status_label.setText("No similar images found")
+
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle("Zero duplicates")
+            msg_box.setText("No similar images found")
+            msg_box.setIconPixmap(QPixmap("resources/smile.png").scaled(400, 170))
+            msg_box.exec()
+            return
+
+
+        self.status_label.setText("")
+        # Збираємо всі файли, які мають дублікати
+        duplicate_paths = set(duplicates.keys())  # Основні зображення
+        for similar_list in duplicates.values():
+            for similar in similar_list:
+                duplicate_paths.add(similar["path"])  # Дублікати
+
+        # Фільтруємо список файлів - показуємо тільки дублікати
+        duplicate_files = [
+            f for f in self.scan_results["all_files"]
+            if f["path"] in duplicate_paths
+        ]
+
+        # Показуємо в таблиці
+        self.file_list.populate_files(duplicate_files)
+
+        # Виділяємо групи дублікатів різними кольорами
+        self._highlight_duplicate_groups(duplicates)
+
+    def on_analysis_error(self):
+        self.status_label.setText("Analysis failed")
+
+    def _highlight_duplicate_groups(self, duplicates: dict):
+        """Highlight duplicate groups with different colors
+
+        Args:
+            duplicates: Dict with duplicates
+        """
+        from PySide6.QtGui import QColor, QBrush
+
+        group_colors = [
+            QColor(255, 200, 100, 100),
+            QColor(255, 181, 194, 100),
+            QColor(140, 213, 253, 100),
+            QColor(150, 255, 200, 100),
+            QColor(117, 202, 150, 100),
+            QColor(255, 150, 150, 100),
+            QColor(255, 255, 150, 100),
+            QColor(200, 150, 255, 100),
+            QColor(200, 255, 200, 100),
+            QColor(255, 200, 200, 100),
+        ]
+
+        # Для кожної групи встановлюємо колір
+        for group_idx, (main_path, similar_list) in enumerate(duplicates.items()):
+            color_idx = group_idx % len(group_colors)
+            group_color = group_colors[color_idx]
+
+            # Шляхи всіх файлів у цій групі
+            group_paths = {main_path}
+            for similar in similar_list:
+                group_paths.add(similar["path"])
+
+            # Виділяємо весь рядок для кожного файлу в групі
+            for row in range(self.file_list.rowCount()):
+                path_item = self.file_list.item(row, 5)  # Колона Path
+
+                if path_item and path_item.text() in group_paths:
+                    for col in range(self.file_list.columnCount()):
+                        item = self.file_list.item(row, col)
+                        if item:
+                            item.setBackground(QBrush(group_color))
+
+                        # Додаємо tooltip з інформацією про подібність
+                        if col == 1:
+                            if path_item.text() == main_path:
+                                item.setToolTip("Main image (has duplicates)")
+                            else:
+                                # Знаходимо подібність для цього файлу
+                                for similar in similar_list:
+                                    if similar["path"] == path_item.text():
+                                        similarity = similar["similarity_percent"]
+                                        item.setToolTip(
+                                            f"Similar to main image ({similarity}% match)"
+                                        )
+                                        break
+
 
     def on_sort_clicked(self):
         """Button 'Sort' handler """
@@ -392,7 +502,6 @@ class MainWindow(QMainWindow):
             deleted_count = len(result["deleted"])
             failed_count = len(result["failed"])
             freed_size = format_size(result["total_freed_bytes"])
-
 
             self.file_list.populate_files(self.scan_results["all_files"])
             self.sidebar.update_statistics(self.scan_results["statistics"])

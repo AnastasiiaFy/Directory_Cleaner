@@ -7,16 +7,6 @@ from utils.file_constants import CATEGORY_COLORS
 class CategoryChart(QWidget):
     """Bar chart with files size by category"""
 
-    # COLORS = {
-    #     "images": QColor(255, 159, 64),
-    #     "documents": QColor(75, 192, 192),
-    #     "video": QColor(255, 99, 132),
-    #     "audio": QColor(54, 162, 235),
-    #     "archives": QColor(153, 102, 255),
-    #     "code": QColor(201, 203, 207),
-    #     "other": QColor(255, 206, 86),
-    # }
-
     def __init__(self):
         super().__init__()
         self.categories = {}

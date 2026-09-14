@@ -21,17 +21,16 @@ CATEGORY_COLORS = {
     "Spreadsheets":  "#91C499",
     "Audio": "#AEECEF",
     "Video": "#AA3E98",
-    "Documents": "#188FA7",      # Blue
-    "Images": "#FFBF46",         # Orange
+    "Documents": "#188FA7",
+    "Images": "#FFBF46",
     "Presentations": "#523249",
-    "Archives": "#B49FCC",       # Purple
-    "Code": "#8ACB88",           # Green
-    "Other": "#CCCCCC",          # Gray
+    "Archives": "#B49FCC",
+    "Code": "#8ACB88",
+    "Other": "#CCCCCC",
 }
 
 
 def get_platform() -> str:
-    """Повертає тип платформи"""
     system = platform.system()
     if system == "Darwin":
         return "macos"
